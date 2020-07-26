@@ -1,0 +1,46 @@
+#Loading and previewing the data
+Cereal<- read.csv("Cereals.csv", header = TRUE)
+View(Cereal)
+summary(Cereal)
+
+#Computing some sumary statistics for calories
+mean(Cereal$calories)
+sd(Cereal$calories)
+min(Cereal$calories)
+mac(Cereal$calories)
+median(Cereal$calories)
+length(Cereal$calories)
+
+#Looking for missing values
+sum(is.na(Cereal))
+
+#data frame with mean, standard deviation, min, mac, median, lengh, and missing value count for all variables
+data.frame(mean=sapply(Cereal[,-c(1:3,13)], mean, na.rm=TRUE), 
+             sd=sapply(Cereal[,-c(1:3,13)], sd, na.rm=TRUE), 
+             min=sapply(Cereal[,-c(1:3,13)], min, na.rm=TRUE), 
+             max=sapply(Cereal[,-c(1:3,13)], max, na.rm=TRUE), 
+             median=sapply(Cereal[,-c(1:3,13)], median, na.rm=TRUE), 
+             length=sapply(Cereal[,-c(1:3,13)], length), 
+             mis.val=sapply(Cereal[,-c(1:3,13)], function(x)sum(length(which(is.na(x))))))
+Sys.time()
+
+#Histogram for each quantitative variable
+hist(Cereal$calories, xlab = "Calories")
+hist(Cereal$protein, xlab = "Protein")       
+hist(Cereal$fat, xlab = "Fat")
+hist(Cereal$sodium, xlab = "Sodium")
+hist(Cereal$fiber, xlab = "Fiber")
+hist(Cereal$carbo, xlab = "Carbs")
+hist(Cereal$sugars, xlab = "Sugars")
+hist(Cereal$potass, xlab = "Potassium")
+hist(Cereal$vitamins, xlab = "Vitamins")
+hist(Cereal$weight, xlab = "Weight")
+hist(Cereal$cups, xlab = "Cups")
+hist(Cereal$rating, xlab = "Rating")
+
+Sys.time()
+
+#Box PLot comparing hot and cold cereal
+boxplot(Cereal$calories ~ Cereal$type, xlab = "Type", ylab = "Calories", main = "Hot versus Cold Cereal Calories")
+
+Sys.time()
