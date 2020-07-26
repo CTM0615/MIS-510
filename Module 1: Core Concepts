@@ -1,0 +1,20 @@
+#exploring the data 
+corolla <- read.csv("ToyotaCorolla.csv", header = TRUE) # loading the data
+dim(corolla) #shows dimensions of table
+head(corolla) #shows the first 6 rows
+View(corolla) #show all of the data in a new tab
+length(corolla$Price) # shows length of the first column
+mean(corolla$Price) #mean price of all data points
+corolla[1:5, 1] # shows the first 5 rows of the first column
+
+#making dummy for fuel type 
+Fuel<- model.matrix( ~ 0 + Price + Fuel_Type, data = corolla)
+Fuel<- as.data.frame(Fuel)
+t(t(names(Fuel)))
+head(Fuel)
+
+#dummy for color
+Color<- model.matrix( ~ 0 + Price + Color, data = corolla)
+Color<- as.data.frame(Color)
+t(t(names(Color)))
+head(Color)
