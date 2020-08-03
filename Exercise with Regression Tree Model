@@ -1,0 +1,55 @@
+---
+title: "Module 3 CT Option 2"
+author: "Cody Mitchell"
+date: "7/31/2020"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Setting Up for Data
+
+``` {r}
+#Loading Libraries
+library(rpart)
+library(rpart.plot)
+
+#Importing the Data
+Corolla<-read.csv("ToyotaCorolla.csv")
+```
+
+## Exploratory Functions on Data
+
+``` {r}
+#mean Price
+mean(Corolla$Price)
+#how many entries
+length(Corolla$Id)
+#how many of each type for Fuel_Type variable
+summary(Corolla$Fuel_Type) 
+#minimum value for km variable
+min(Corolla$KM)
+#standard deviation for Price 
+sd(Corolla$Price) 
+```
+
+## Making the Tree Model
+
+```{r}
+#Tree model with minimum node value of 1, maximum depth of 30, and a cp of 0.001
+Tree.model<- rpart(Price ~ 
+                     Age_08_04 + Fuel_Type + HP + Automatic + Doors + Quarterly_Tax + Mfr_Guarantee + Guarantee_Period + Airco + Automatic_airco + CD_Player + Powered_Windows + Sport_Model + Tow_Bar, 
+                   data = Corolla, control = rpart.control(maxdepth = 30, minbucket = 1), cp = 0.001)
+
+#Summary information for the generated model
+summary(Tree.model)
+```
+
+## Resulting Tree Chart
+
+```{r}
+#Tree chart with n values of each node, non-scientific notation, and normal font options
+prp(Tree.model, type = 1, extra = 1, under = TRUE, varlen = 0, digits = -1, main = "Regression Tree for Corolla Prices")
+```
