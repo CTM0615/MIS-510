@@ -1,0 +1,66 @@
+library(rpart)
+library(rpart.plot)
+mower.df<- read.csv("RidingMowers.csv")
+
+#use rpart to runa classification tree
+#define rpart.control() in rpart() to determine depth of tree
+class.tree<- rpart(Ownership ~ ., data = mower.df, control = rpart.control(maxdepth = 2), method = "class")
+
+#plto tree
+#use prp() to plot the tree. Can control color, shape, and informaiton displayed
+prp(class.tree, type = 1, extra = 1, split.font = 1, varlen = 10)
+
+bank.df<- read.csv("UniversalBank.csv")
+bank.df<- bank.df[ , -c(1,5)] #dont need ID and zip code
+
+#partition
+set.seed(1)
+train.index<- sample(c(1:dim(bank.df)[1]), dim(bank.df)[1]*0.6)
+train.df<- bank.df[train.index,]
+valid.df<- bank.df[-train.index,]
+
+#classificaiton tree
+default.ct<- rpart(Personal.Loan ~ ., data = train.df, method = "class")
+#plot tree
+prp(default.ct, type = 1, extra = 1, under = TRUE, split.font = 1, varlen = -10)
+
+#making a deeper classification tree
+deeper.ct <- rpart(Personal.Loan ~ ., data = train.df, method = "class", cp = 0, minsplit = 1)
+#count number of leaves
+length(deeper.ct$frame$var[deeper.ct$frame$var == '<leaf>'])
+#plot tree
+prp(deeper.ct, type = 1, extra = 1, under = TRUE, split.font = 1, varlen = -10, box.col = ifelse(deeper.ct$frame$var == "<leaf>", 'gray', 'white'))
+
+
+#confusion matrices and accuracy for the small and deep classification trees 
+library(caret)
+
+#classify records in validation data
+#set argument type = "class" in predict() to generate predicted class membership
+default.ct.point.pred.train<- predict(default.ct, train.df, type = "class")
+
+#generate confusion matrix for training data
+confusionMatrix(default.ct.point.pred.train, as.factor(train.df$Personal.Loan))
+
+#same for validation set
+default.ct.point.pred.valid<- predict(default.ct, valid.df, type = "class")
+confusionMatrix(default.ct.point.pred.valid, as.factor(valid.df$Personal.Loan))
+
+#deep training
+deeper.ct.point.pred.train<- predict(deeper.ct, train.df, type = "class")
+confusionMatrix(deeper.ct.point.pred.train, as.factor(train.df$Personal.Loan))
+
+#deep validation
+deeper.ct.point.pred.valid<- predict(deeper.ct, valid.df, type = "class")
+confusionMatrix(deeper.ct.point.pred.valid, as.factor(valid.df$Personal.Loan))
+
+#argumetn cval refers to the number of foldes to use in rpart's built-in cross-validation procedure
+#argument cp sets smallest value for the complexity parameter
+cv.ct<- rpart(Personal.Loan ~ ., data = train.df, method = "class", cp = 0.00001, minsplit = 5, xval = 5)
+#print the table
+printcp(cv.ct)
+
+#prune by lower cp 
+pruned.ct<- prune(cv.ct, cp = cv.ct$cptable[which.min(cv.ct$cptable[,"xerror"]),"CP"])
+length(pruned.ct$frame$var[pruned.ct$frame$var == "<leaaf>"])
+prp(pruned.ct, type = 1, extra = 1, split.font = 1, varlen = -10)
