@@ -1,0 +1,85 @@
+---
+title: "Module 4 CT Option 1"
+author: "Cody Mitchell"
+date: "8/7/2020"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Loading in the Data and Libraries
+
+```{r}
+#loading Libraries
+library(gains)
+library(caret)
+
+#load in the provided banks dataset
+Banks<- read.csv("Banks.csv")
+#dropping ID and TotCap.Assets variables
+Banks<-Banks[,-c(1,3)]
+```
+
+# Exploratory Statistics for Data
+```{r}
+#Exploratory informaiton
+#How many entries are in the data set
+length(Banks$Financial.Condition)
+#general informaiton on Financial Condition variable
+summary(Banks$Financial.Condition) #note that it is stored as numeric not factor
+#max value TotExpAssets
+max(Banks$TotExp.Assets)
+#variance in TotExpAssets
+var(Banks$TotExp.Assets)
+#check for NA values
+any(is.na(Banks))
+```
+
+# Creating Logistic Regression
+
+```{r}
+#running the logistic regression
+#use glm() with family = "binomial" to fit the logistic regression
+
+log.reg<-glm(Financial.Condition ~ ., data = Banks, family = "binomial")
+options(scipen = 999)
+summary(log.reg)
+```
+
+# Generated Equation
+Logit(Financial Condition = Strong) = -14.721 + 89.834 TotalExp.Assets + 8.371 TotLns.Lses.Assets
+
+# Evaluating Performance of Model
+```{r}
+#predicting values
+log.reg.pred<- predict(log.reg, Banks[,-1], type = "response")
+
+gain<- gains(Banks$Financial.Condition, log.reg.pred, length(log.reg))
+```
+
+## Lift Chart
+```{r}
+#plot lift chart and inserting expected line if random predictions
+plot(c(0,gain$cume.pct.of.total*sum(Banks$Financial.Condition))~c(0,gain$cume.obs), xlab="# cases", ylab="Cumulative", main="Bank Logistic Model Lift Chart", type ="l")
+lines(c(0,sum(Banks$Financial.Condition))~c(0, dim(Banks)[1]), lty=2)
+```
+
+## Confusion Matrix
+```{r}
+#changing Financial Condition to a factor variable, changing the labels of the levels, and checking that it went through
+Banks$Financial.Condition<-factor(Banks$Financial.Condition, levels = c(0,1),
+                                  labels = c("Weak", "Strong"))
+is.factor(Banks$Financial.Condition)
+
+
+#cpred<-(predict(log.reg, Banks))
+#confusionMatrix(as.factor(ifelse(cpred > 0.5, 1, 0)), as.factor(Banks$Financial.Condition))
+
+p_class<- ifelse(log.reg.pred > 0.5, "Strong", "Weak")
+table(p_class)
+p_class<-factor(p_class)
+
+confusionMatrix(p_class, Banks$Financial.Condition)
+```
