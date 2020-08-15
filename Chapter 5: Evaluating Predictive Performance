@@ -1,0 +1,41 @@
+#Prediction error metrics from a model for toyota car prices, training and validation
+#Package forecast is required 
+library(forecast)
+
+#load file
+toyota.corolla.df<- read.csv("ToyotaCorolla.csv")
+
+#randomly generate training and validation
+training<- sample(toyota.corolla.df$Id, 600)
+validation<- sample(setdiff(toyota.corolla.df$Id, training), 400)
+
+#run linear regression model
+reg<-lm(Price ~ ., data = toyota.corolla.df[,-c(1,2,8,11)], subset = training, na.action = na.exclude)
+pred_t <- predict(reg, na.action = na.pass)
+pred_v<-predict(reg, newdata = toyota.corolla.df[validation,-c(1,2,8,11)], na.action = na.pass)
+
+##evaluate performance
+#training
+accuracy(pred_t, toyota.corolla.df[training,]$Price)
+
+#validation
+accuracy(pred_v, toyota.corolla.df[validation,]$Price)
+
+####Lift chart and decile chart for continuous output variable
+#remove missing price data
+toyota.corolla.df<-toyota.corolla.df[!is.na(toyota.corolla.df[validation,]$Price),]
+
+library(gains)
+gain<- gains(toyota.corolla.df[validation,]$Price[!is.na(pred_v)], pred_v[!is.na(pred_v)])
+
+#cumulative lift chart
+options(scipen = 999)
+#compute gain relative to price
+price<- toyota.corolla.df[validation,]$Price[!is.na(toyota.corolla.df[validation,]$Price)]
+plot(c(0,gain$cume.pct.of.total*sum(price))~c(0, gain$cume.obs), xlab="# cases", ylab="Cumulative Price", main="Lift Chart", type = "l")
+
+#baseline
+lines(c(0,sum(price))~c(0,dim(toyota.corolla.df[validation,])[1]), col="gray", lty=2)
+
+#decile lift chart
+barplot(gain$mean.resp/mean(price), names.arg = gain$depth, xlab="Percentil", ylab = "Mean Response", main = "Decile-Wise Lift Chart")
