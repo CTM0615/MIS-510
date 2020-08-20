@@ -1,0 +1,51 @@
+---
+title: "Module 6 CT Option 1"
+author: "Cody Mitchell"
+date: "8/16/2020"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Loading Necessary library and data
+
+```{r}
+#loading necessary libraries
+library(arules)
+
+#loading in the csv file for use
+Courses.df<- read.csv("CourseTopics.csv")
+```
+
+# Formatting Data For Rules 
+
+```{r}
+#converting to a matrix 
+Courses.mat<-as.matrix(Courses.df)
+
+#convert the binary incidents into a transactoin based database 
+Courses.trans <- as(Courses.mat, "transactions")
+
+#making sure that elements were correctly converted
+inspect(head(Courses.trans))
+```
+
+# Getting the Rules for Transactions
+
+```{r}
+#must include minimum support, minimum confidence, and target as arguments for apriori
+#rules1 is for 0.1 confidence, rules2 for 0.5 confidence
+rules1<- apriori(Courses.trans, parameter = list(supp=0.01, conf = 0.1, target = "rules"))
+
+rules2<- apriori(Courses.trans, parameter = list(supp=0.01, conf = 0.5, target = "rules"))
+
+#inspecting the first 6 rules for each of the rule sets
+inspect(head(sort(rules1, by = "lift"), n=10))
+inspect(head(sort(rules2, by = "lift"), n=10))
+
+#seeing how the length between the rulesets differs
+length(rules1)
+length(rules2)
+```
